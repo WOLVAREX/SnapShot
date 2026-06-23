@@ -1,0 +1,8 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "XUCVo4zfQisqUzjBMPqt5"
+uri = "file://artifacts/screenshot-tool/public/opengraph.png"
+type = "image"
+title = "snapshot-og-image"

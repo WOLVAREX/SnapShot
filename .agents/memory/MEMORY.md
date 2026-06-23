@@ -1,0 +1,3 @@
+- [Playwright Chromium on Replit Nix](playwright-nix.md) — system Chromium from Nix (`pkgs.chromium`) works; Playwright's downloaded binary needs libgbm which Nix doesn't expose on LD_LIBRARY_PATH.
+- [Archiver CJS on ESM esbuild](archiver-esbuild.md) — archiver v8 is pure ESM with named exports (not a function); must use archiver v5 + externalize in build.mjs + createRequire to load it.
+- [Browser keepalive for Playwright](browser-keepalive.md) — always attach a `browser.on("disconnected", ...)` handler that resets the browserPromise cache; stale closed browsers silently fail newContext().

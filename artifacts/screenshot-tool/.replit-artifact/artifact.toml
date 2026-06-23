@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Screenshot Tool"
+version = "1.0.0"
+id = "artifacts/screenshot-tool"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+name = "web"
+paths = [ "/" ]
+localPort = 23523
+
+[services.development]
+run = "pnpm --filter @workspace/screenshot-tool run dev"
+
+[services.production]
+build = [ "pnpm", "--filter", "@workspace/screenshot-tool", "run", "build" ]
+publicDir = "artifacts/screenshot-tool/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"
+
+[services.env]
+PORT = "23523"
+BASE_PATH = "/"

@@ -1,0 +1,337 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: Screenshot capture API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: screenshots
+    description: Screenshot capture operations
+  - name: pages
+    description: Page discovery operations
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /screenshot:
+    post:
+      operationId: takeScreenshot
+      tags: [screenshots]
+      summary: Capture a screenshot
+      description: Capture a screenshot of a URL with given settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ScreenshotInput"
+      responses:
+        "200":
+          description: Screenshot captured successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScreenshotResult"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Screenshot failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /screenshots/{id}:
+    get:
+      operationId: getScreenshot
+      tags: [screenshots]
+      summary: Get screenshot by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Screenshot found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ScreenshotResult"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /screenshots:
+    get:
+      operationId: listScreenshots
+      tags: [screenshots]
+      summary: List recent screenshots
+      responses:
+        "200":
+          description: List of screenshots
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ScreenshotResult"
+
+  /screenshots/bulk:
+    post:
+      operationId: takeBulkScreenshots
+      tags: [screenshots]
+      summary: Capture screenshots for multiple URLs/paths
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BulkScreenshotInput"
+      responses:
+        "200":
+          description: Bulk job created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BulkJob"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /bulk/{jobId}:
+    get:
+      operationId: getBulkJob
+      tags: [screenshots]
+      summary: Get bulk screenshot job status
+      parameters:
+        - name: jobId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Bulk job status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BulkJob"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /pages/discover:
+    post:
+      operationId: discoverPages
+      tags: [pages]
+      summary: Discover navigable pages from a URL
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DiscoverInput"
+      responses:
+        "200":
+          description: Pages discovered
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DiscoveredPages"
+        "400":
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Discovery failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    ScreenshotInput:
+      type: object
+      required:
+        - url
+      properties:
+        url:
+          type: string
+          description: Full URL to screenshot
+        viewport:
+          type: string
+          enum: [desktop, mobile]
+          default: desktop
+          description: Viewport type
+        fullPage:
+          type: boolean
+          default: false
+          description: Capture full page scroll height
+
+    BulkScreenshotInput:
+      type: object
+      required:
+        - baseUrl
+        - paths
+      properties:
+        baseUrl:
+          type: string
+          description: Base URL of the website
+        paths:
+          type: array
+          items:
+            type: string
+          description: List of paths to screenshot (e.g. ["/", "/about", "/contact"])
+        viewport:
+          type: string
+          enum: [desktop, mobile]
+          default: desktop
+        fullPage:
+          type: boolean
+          default: false
+
+    DiscoverInput:
+      type: object
+      required:
+        - url
+      properties:
+        url:
+          type: string
+          description: URL to discover pages from
+
+    DiscoveredPage:
+      type: object
+      required:
+        - url
+        - path
+        - label
+      properties:
+        url:
+          type: string
+        path:
+          type: string
+        label:
+          type: string
+
+    DiscoveredPages:
+      type: object
+      required:
+        - baseUrl
+        - pages
+      properties:
+        baseUrl:
+          type: string
+        pages:
+          type: array
+          items:
+            $ref: "#/components/schemas/DiscoveredPage"
+
+    ScreenshotResult:
+      type: object
+      required:
+        - id
+        - url
+        - viewport
+        - fullPage
+        - status
+        - createdAt
+      properties:
+        id:
+          type: string
+        url:
+          type: string
+        viewport:
+          type: string
+          enum: [desktop, mobile]
+        fullPage:
+          type: boolean
+        status:
+          type: string
+          enum: [pending, completed, failed]
+        error:
+          type: ["string", "null"]
+        imageUrl:
+          type: ["string", "null"]
+        createdAt:
+          type: string
+
+    BulkJob:
+      type: object
+      required:
+        - jobId
+        - status
+        - total
+        - completed
+        - failed
+        - screenshots
+        - createdAt
+      properties:
+        jobId:
+          type: string
+        status:
+          type: string
+          enum: [pending, running, completed, failed]
+        total:
+          type: integer
+        completed:
+          type: integer
+        failed:
+          type: integer
+        zipUrl:
+          type: ["string", "null"]
+        screenshots:
+          type: array
+          items:
+            $ref: "#/components/schemas/ScreenshotResult"
+        createdAt:
+          type: string
